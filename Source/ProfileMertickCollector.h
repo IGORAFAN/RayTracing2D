@@ -14,4 +14,8 @@ protected:
 	std::chrono::time_point<std::chrono::high_resolution_clock> Start;
 };
 
-#define PROFILE_METRICS_COLLECTOR ProfileMerticsCollector PMC(__FUNCTION__);
+#if DEBUG_MODE
+#define PROFILE_METRICS_COLLECTOR(Name) ProfileMerticsCollector PMC(Name);
+#else
+#define PROFILE_METRICS_COLLECTOR(Name)
+#endif

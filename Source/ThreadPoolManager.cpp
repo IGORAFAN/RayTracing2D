@@ -13,7 +13,7 @@ FThreadPoolManager::FThreadPoolManager(int InThreadsNum) : bShouldWeStopRunningT
 			{
 				while (true)
 				{
-					std::pair<void(*)(void*), void*> Task;
+					std::pair<std::function<void(void*)>, void*> Task;
 					{
 						std::unique_lock<std::mutex> Lock(Mutex);
 						this->ConditionVariable.wait(Lock,
@@ -37,6 +37,8 @@ FThreadPoolManager::FThreadPoolManager(int InThreadsNum) : bShouldWeStopRunningT
 						this->Tasks.pop();
 					}
 					Task.first(Task.second);
+					this->TaskCount.fetch_sub(1);
+					this->ConditionVariable.notify_all();
 				}
 			})
 		);
@@ -58,18 +60,28 @@ FThreadPoolManager::~FThreadPoolManager()
 	}
 }
 
-void FThreadPoolManager::AddTask(void(*InTask)(void*), void* InData)
+void FThreadPoolManager::AddTask(std::function<void(void*)> InTask, void* InData)
 {
-	{
-		std::unique_lock<std::mutex> Lock(Mutex);
-		
-		if (bShouldWeStopRunningThreads)
-		{
-			return;
-		}
-		
-		Tasks.push(std::pair<void(*)(void*), void*>(InTask, InData));
+	std::unique_lock<std::mutex> Lock(Mutex);
 
-		ConditionVariable.notify_one();
+	if (bShouldWeStopRunningThreads)
+	{
+		return;
 	}
+
+	Tasks.push(std::pair<std::function<void(void*)>, void*>(InTask, InData));
+	TaskCount.fetch_add(1);
+
+	ConditionVariable.notify_one();
+}
+
+void FThreadPoolManager::WaitUntilAllTasksFinished()
+{
+	std::unique_lock<std::mutex> Lock(Mutex);
+	ConditionVariable.wait(Lock,
+		[this]() -> bool
+		{
+			return this->TaskCount == 0;
+		}
+	);
 }

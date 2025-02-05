@@ -1,10 +1,11 @@
 //#include SDL_MAIN_HANDLED
 
-#include <SDL_init.h>
-#include "RayTrace.h"
 #include "Constants.h"
-#include "ProcessAppManager.h"
+#include "RenderManager.h"
 #include "ThreadPoolManager.h"
+#include "Helper.h"
+#include "ControllAppManager.h"
+#include <SDL_init.h>
 
 int main(int argc, char* argv[])
 {
@@ -15,18 +16,23 @@ int main(int argc, char* argv[])
 	MainData.Surface = SDL_GetWindowSurface(MainData.Window);
 	
 	FRect EraseRect = { 0, 0, WIDTH, HEIGHT };
-	MainData.EraseRect = &EraseRect;
+	FFigureRenderData EraseRectRD(&EraseRect, true);
+	MainData.EraseRectRD = &EraseRectRD;
 
 	FCircle ControlledCircle = { WIDTH / 3, HEIGHT / 2, 20};
 	ControlledCircle.bTransparent = true;
 	ControlledCircle.bDoesItEmitLight = true;
-	MainData.ObjectsToRender.push_back(&ControlledCircle);
+	
+	FFigureRenderData ControlledCircleRD(&ControlledCircle, false);
+	MainData.ObjectsToRender.push_back(&ControlledCircleRD);
 	
 	FCircle Circle = { 500, 225, 100 };
-	MainData.ObjectsToRender.push_back(&Circle);
+	FFigureRenderData CircleRD(&Circle, false);
+	MainData.ObjectsToRender.push_back(&CircleRD);
 
 	FRect Rect = { 300, 400, 100, 40 };
-	MainData.ObjectsToRender.push_back(&Rect);
+	FFigureRenderData RectRD(&Rect, false);
+	MainData.ObjectsToRender.push_back(&RectRD);
 
 	FRay Rays[RAYS_NUMBERS];
 	MainData.RaysArray = &Rays[0];
@@ -37,17 +43,22 @@ int main(int argc, char* argv[])
 	// Render the first frame
 	float2 DetectedControll = { ControlledCircle.X, ControlledCircle.Y };
 	MainData.GenerateRaysFromPosition = DetectedControll;
-	ProcessAppManager::MakeOneFrame(MainData);
+	unsigned long long int FrameCounter = 0;
+	++FrameCounter;
+	RenderManager::MakeOneFrame(MainData);
 
 	SDL_Event Event;
 	bool bRunTheApp = true;
 	while (bRunTheApp)
 	{
-		ProcessAppManager::HandleInput(Event, bRunTheApp, DetectedControll);
-
-		if (ProcessAppManager::ApplyControll(DetectedControll, MainData))
+		ControllAppManager::HandleInput(Event, bRunTheApp, DetectedControll);
+		
+		//ControllAppManager::ApplyControll(DetectedControll, MainData);
+		if (ControllAppManager::ApplyControll(DetectedControll, MainData))
 		{
-			ProcessAppManager::MakeOneFrame(MainData);
+			DebugTrace("Frame: " + std::to_string(++FrameCounter));
+
+			RenderManager::MakeOneFrame(MainData);
 		}
 	}
 
