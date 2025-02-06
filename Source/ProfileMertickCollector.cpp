@@ -22,5 +22,5 @@ ProfileMerticsCollector::~ProfileMerticsCollector()
 	int DutarionAsInt = DurationInMilliseconds.count();
 	for (int i = 0; i < static_cast<int>(DutarionAsInt); ++i) HashLine.append("#");
 
-	DebugTrace(std::string("PMC - Name: " + Name + " | " + DurationAsStrInMilliseconds + "ms " + HashLine));
+	DebugTrace(std::string("PMC - " + Name + " | " + DurationAsStrInMilliseconds + "ms " + HashLine));
 }

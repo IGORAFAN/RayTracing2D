@@ -1,4 +1,5 @@
 #include "ThreadPoolManager.h"
+#include "Helper.h"
 
 FThreadPoolManager::FThreadPoolManager(int InThreadsNum) : bShouldWeStopRunningThreads(false)
 {
@@ -62,7 +63,12 @@ FThreadPoolManager::~FThreadPoolManager()
 
 void FThreadPoolManager::AddTask(std::function<void(void*)> InTask, void* InData)
 {
-	std::unique_lock<std::mutex> Lock(Mutex);
+	if (!Mutex.try_lock())
+	{
+		DebugTrace("Attempt to lock was unsuccessful!");
+		Mutex.lock();
+	}
+	//std::unique_lock<std::mutex> Lock(Mutex);
 
 	if (bShouldWeStopRunningThreads)
 	{
@@ -73,6 +79,8 @@ void FThreadPoolManager::AddTask(std::function<void(void*)> InTask, void* InData
 	TaskCount.fetch_add(1);
 
 	ConditionVariable.notify_one();
+
+	Mutex.unlock();
 }
 
 void FThreadPoolManager::WaitUntilAllTasksFinished()

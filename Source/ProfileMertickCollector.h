@@ -6,6 +6,7 @@
 class ProfileMerticsCollector
 {
 public:
+	ProfileMerticsCollector() = delete;
 	ProfileMerticsCollector(const std::string& InName);
 	~ProfileMerticsCollector();
 
