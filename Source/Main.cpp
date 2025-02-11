@@ -40,25 +40,34 @@ int main(int argc, char* argv[])
 	FThreadPoolManager ThreadPoolManager(THREADS_NUMBERS);
 	MainData.ThreadPoolManager = &ThreadPoolManager;
 
+
 	// Render the first frame
 	float2 DetectedControll = { ControlledCircle.X, ControlledCircle.Y };
 	MainData.GenerateRaysFromPosition = DetectedControll;
+
 	unsigned long long int FrameCounter = 0;
 	++FrameCounter;
-	RenderManager::MakeOneFrame(MainData);
+
+	FRenderManager* RenderManager = FRenderManager::GetInstance();
+	if (RenderManager) RenderManager->MakeOneFrame(MainData);
+
+	FControllAppManager* ControllAppManager = FControllAppManager::GetInstance();
 
 	SDL_Event Event;
 	bool bRunTheApp = true;
 	while (bRunTheApp)
 	{
-		ControllAppManager::HandleInput(Event, bRunTheApp, DetectedControll);
-		
-		//ControllAppManager::ApplyControll(DetectedControll, MainData);
-		if (ControllAppManager::ApplyControll(DetectedControll, MainData))
+		if (ControllAppManager && RenderManager)
 		{
-			DebugTrace("Frame: " + std::to_string(++FrameCounter));
+			ControllAppManager->HandleInput(Event, bRunTheApp, DetectedControll);
 
-			RenderManager::MakeOneFrame(MainData);
+			//ControllAppManager->ApplyControll(DetectedControll, MainData);
+			if (ControllAppManager->ApplyControll(DetectedControll, MainData))
+			{
+				DebugTrace("Frame: " + std::to_string(++FrameCounter));
+
+				RenderManager->MakeOneFrame(MainData);
+			}
 		}
 	}
 

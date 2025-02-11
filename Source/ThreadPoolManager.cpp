@@ -1,8 +1,11 @@
 #include "ThreadPoolManager.h"
 #include "Helper.h"
+#include "ProfileMertickCollector.h"
 
-FThreadPoolManager::FThreadPoolManager(int InThreadsNum) : bShouldWeStopRunningThreads(false)
+FThreadPoolManager::FThreadPoolManager(int InThreadsNum)
 {
+	bShouldWeStopRunningThreads.store(false);
+
 	if (InThreadsNum < 1)
 	{
 		InThreadsNum = 1;
@@ -20,26 +23,26 @@ FThreadPoolManager::FThreadPoolManager(int InThreadsNum) : bShouldWeStopRunningT
 						this->ConditionVariable.wait(Lock,
 							[this]() -> bool
 							{
-								if (this)
-								{
-									return this->bShouldWeStopRunningThreads || !this->Tasks.empty();
-								}
-								else
-								{
-									return true;
-								}
+								return this->bShouldWeStopRunningThreads.load() || !this->Tasks.empty();
 							}
 						);
-						if (this->bShouldWeStopRunningThreads && this->Tasks.empty())
-						{
-							return;
-						}
-						Task = this->Tasks.front();
-						this->Tasks.pop();
 					}
-					Task.first(Task.second);
-					this->TaskCount.fetch_sub(1);
-					this->ConditionVariable.notify_all();
+
+					if (this->bShouldWeStopRunningThreads.load() && this->Tasks.empty())
+					{
+						return;
+					}
+
+					if (this->Tasks.try_pop(Task))
+					{
+						Task.first(Task.second);
+						this->TaskCount.fetch_sub(1);
+						this->ConditionVariable.notify_all();
+					}
+					else
+					{
+						DebugTrace("Task can't be removed from the tasks queue!");
+					}
 				}
 			})
 		);
@@ -48,10 +51,7 @@ FThreadPoolManager::FThreadPoolManager(int InThreadsNum) : bShouldWeStopRunningT
 
 FThreadPoolManager::~FThreadPoolManager()
 {
-	{
-		std::unique_lock<std::mutex> Lock(Mutex);
-		bShouldWeStopRunningThreads = true;
-	}
+	bShouldWeStopRunningThreads.store(true);
 
 	ConditionVariable.notify_all();
 
@@ -63,14 +63,9 @@ FThreadPoolManager::~FThreadPoolManager()
 
 void FThreadPoolManager::AddTask(std::function<void(void*)> InTask, void* InData)
 {
-	if (!Mutex.try_lock())
-	{
-		DebugTrace("Attempt to lock was unsuccessful!");
-		Mutex.lock();
-	}
-	//std::unique_lock<std::mutex> Lock(Mutex);
+	//PROFILE_METRICS_COLLECTOR("FThreadPoolManager_AddTask");
 
-	if (bShouldWeStopRunningThreads)
+	if (bShouldWeStopRunningThreads.load())
 	{
 		return;
 	}
@@ -79,8 +74,6 @@ void FThreadPoolManager::AddTask(std::function<void(void*)> InTask, void* InData
 	TaskCount.fetch_add(1);
 
 	ConditionVariable.notify_one();
-
-	Mutex.unlock();
 }
 
 void FThreadPoolManager::WaitUntilAllTasksFinished()
@@ -89,7 +82,7 @@ void FThreadPoolManager::WaitUntilAllTasksFinished()
 	ConditionVariable.wait(Lock,
 		[this]() -> bool
 		{
-			return this->TaskCount == 0;
+			return this->TaskCount.load() == 0;
 		}
 	);
 }

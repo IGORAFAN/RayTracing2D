@@ -3,18 +3,25 @@
 #include "ProfileMertickCollector.h"
 #include <vector>
 #include <SDL_surface.h>
+#include <corecrt_math.h>
 
-RenderManager::RenderManager()
+FRenderManager::FRenderManager()
 {
 
 }
 
-RenderManager::~RenderManager()
+FRenderManager::~FRenderManager()
 {
 
 }
 
-void RenderManager::DrawOneCircleOnSurface(SDL_Surface* InSurface, FFigureRenderData& InFigureRD, uint32_t InColor)
+FRenderManager* FRenderManager::GetInstance()
+{
+	static FRenderManager Instance;
+	return &Instance;
+}
+
+void FRenderManager::DrawOneCircleOnSurface(SDL_Surface* InSurface, FFigureRenderData& InFigureRD, uint32_t InColor)
 {
 	//if (InFigureRD.bShouldUpdateOnScreenAtTheNextFrame)
 	//{
@@ -33,7 +40,7 @@ void RenderManager::DrawOneCircleOnSurface(SDL_Surface* InSurface, FFigureRender
 					if (Circle->IsIn(CurrentPosition))
 					{
 						FRect CurrentPixel = { X, Y, 1, 1 };
-						RenderManager::DrawOnePixelOnSurface(InSurface, CurrentPixel, InColor);
+						FRenderManager::DrawOnePixelOnSurface(InSurface, CurrentPixel, InColor);
 						//if (InFigureRD.bAlwaysShouldUpdateOnScreen == false)
 						//{
 						//	InFigureRD.bShouldUpdateOnScreenAtTheNextFrame = false;
@@ -45,7 +52,7 @@ void RenderManager::DrawOneCircleOnSurface(SDL_Surface* InSurface, FFigureRender
 	//}
 }
 
-void RenderManager::DrawOneCircleOnSurface_Bresenham(SDL_Surface* InSurface, FFigureRenderData& InFigureRD, uint32_t InColor)
+void FRenderManager::DrawOneCircleOnSurface_Bresenham(SDL_Surface* InSurface, FFigureRenderData& InFigureRD, uint32_t InColor)
 {
 	if (FCircle* Circle = static_cast<FCircle*>(InFigureRD.Figure))
 	{
@@ -56,17 +63,17 @@ void RenderManager::DrawOneCircleOnSurface_Bresenham(SDL_Surface* InSurface, FFi
 
 		for (int y = -r; y <= r; ++y)
 		{
-			int dx = static_cast<int>(std::sqrt(r2 - y * y));
+			int dx = static_cast<int>(sqrt(r2 - y * y));
 			int xStart = cx - dx;
 			int xEnd = cx + dx;
 
 			FRect LineRect = { xStart, cy + y, (xEnd - xStart + 1), 1 };
-			RenderManager::DrawOnePixelOnSurface(InSurface, LineRect, InColor);
+			FRenderManager::DrawOnePixelOnSurface(InSurface, LineRect, InColor);
 		}
 	}
 }
 
-void RenderManager::DrawMultiCirclesOnSurface(SDL_Surface* InSurface, const std::vector<FFigureRenderData*>& InObjectsArray, uint32_t InColor)
+void FRenderManager::DrawMultiCirclesOnSurface(SDL_Surface* InSurface, const std::vector<FFigureRenderData*>& InObjectsArray, uint32_t InColor)
 {
 	//PROFILE_METRICS_COLLECTOR("RenderManager_DrawMultiCirclesOnSurface");
 
@@ -76,7 +83,7 @@ void RenderManager::DrawMultiCirclesOnSurface(SDL_Surface* InSurface, const std:
 	}
 }
 
-void RenderManager::DrawOneRectangeOnSurface(SDL_Surface* InSurface, FFigureRenderData& InFigureRD, uint32_t InColor)
+void FRenderManager::DrawOneRectangeOnSurface(SDL_Surface* InSurface, FFigureRenderData& InFigureRD, uint32_t InColor)
 {
 	//PROFILE_METRICS_COLLECTOR("RenderManager_DrawOneRectangeOnSurface");
 
@@ -93,7 +100,7 @@ void RenderManager::DrawOneRectangeOnSurface(SDL_Surface* InSurface, FFigureRend
 	//}
 } 
 
-void RenderManager::DrawMultiRectanglesOnSurface(SDL_Surface* InSurface, const std::vector<FFigureRenderData*>& InObjectsArray, uint32_t InColor)
+void FRenderManager::DrawMultiRectanglesOnSurface(SDL_Surface* InSurface, const std::vector<FFigureRenderData*>& InObjectsArray, uint32_t InColor)
 {
 	//PROFILE_METRICS_COLLECTOR("RenderManager_DrawMultiRectanglesOnSurface");
 
@@ -103,7 +110,7 @@ void RenderManager::DrawMultiRectanglesOnSurface(SDL_Surface* InSurface, const s
 	}
 }
 
-void RenderManager::DrawLineOnSurface(SDL_Surface* InSurface, float2& InStart, float2& InEnd, int InThickness, uint32_t InColor)
+void FRenderManager::DrawLineOnSurface(SDL_Surface* InSurface, float2& InStart, float2& InEnd, int InThickness, uint32_t InColor)
 {
 	int X1 = static_cast<int>(InStart.X);
 	int Y1 = static_cast<int>(InStart.Y);
@@ -126,12 +133,12 @@ void RenderManager::DrawLineOnSurface(SDL_Surface* InSurface, float2& InStart, f
 	}
 }
 
-void RenderManager::DrawOnePixelOnSurface(SDL_Surface* InSurface, const FRect& InPixelPosition, uint32_t InColor)
+void FRenderManager::DrawOnePixelOnSurface(SDL_Surface* InSurface, const FRect& InPixelPosition, uint32_t InColor)
 {
 	SDL_FillSurfaceRect(InSurface, &InPixelPosition.Rect, InColor);
 }
 
-void RenderManager::DrawMultiPixelsOnSurface(SDL_Surface* InSurface, const std::vector<FRect>& Pixels, uint32_t InColor)
+void FRenderManager::DrawMultiPixelsOnSurface(SDL_Surface* InSurface, const std::vector<FRect>& Pixels, uint32_t InColor)
 {
 	for (const FRect& Pixel : Pixels)
 	{
@@ -139,7 +146,7 @@ void RenderManager::DrawMultiPixelsOnSurface(SDL_Surface* InSurface, const std::
 	}
 }
 
-void RenderManager::DrawOneRayOnSurface_ByPixel(
+void FRenderManager::DrawOneRayOnSurface_ByPixel(
 	SDL_Surface* InSurface,
 	const std::vector<FFigureRenderData*>& InObjectsArray,
 	const FRay& InRay,
@@ -172,7 +179,7 @@ void RenderManager::DrawOneRayOnSurface_ByPixel(
 	}
 }
 
-void RenderManager::DrawOneRayOnSurface_ByPixelBuffer(SDL_Surface* InSurface, const std::vector<FFigureRenderData*>& InObjectsArray, const FRay& InRay, uint32_t InColor)
+void FRenderManager::DrawOneRayOnSurface_ByPixelBuffer(SDL_Surface* InSurface, const std::vector<FFigureRenderData*>& InObjectsArray, const FRay& InRay, uint32_t InColor)
 {
 	float DrawX = InRay.StartX;
 	float DrawY = InRay.StartY;
@@ -203,10 +210,10 @@ void RenderManager::DrawOneRayOnSurface_ByPixelBuffer(SDL_Surface* InSurface, co
 		PixelsToDraw.push_back({ (int)DrawX, (int)DrawY, RAY_THICKNESS, RAY_THICKNESS });
 	}
 
-	RenderManager::DrawMultiPixelsOnSurface(InSurface, PixelsToDraw, InColor);
+	FRenderManager::DrawMultiPixelsOnSurface(InSurface, PixelsToDraw, InColor);
 }
 
-void RenderManager::DrawOneRayOnSurface_ByLine(SDL_Surface* InSurface, const std::vector<FFigureRenderData*>& InObjectsArray, const FRay& InRay, uint32_t InColor)
+void FRenderManager::DrawOneRayOnSurface_ByLine(SDL_Surface* InSurface, const std::vector<FFigureRenderData*>& InObjectsArray, const FRay& InRay, uint32_t InColor)
 {
 	float DrawX = InRay.StartX;
 	float DrawY = InRay.StartY;
@@ -234,14 +241,14 @@ void RenderManager::DrawOneRayOnSurface_ByLine(SDL_Surface* InSurface, const std
 
 		float2 Start = { DrawX, DrawY };
 		float2 End = { NewX, NewY };
-		RenderManager::DrawLineOnSurface(InSurface, Start, End, 1, InColor);
+		FRenderManager::DrawLineOnSurface(InSurface, Start, End, 1, InColor);
 
 		DrawX = NewX;
 		DrawY = NewY;
 	}
 }
 
-void RenderManager::MakeOneFrame(FMainData& InMainData)
+void FRenderManager::MakeOneFrame(FMainData& InMainData)
 {
 	PROFILE_METRICS_COLLECTOR("RenderManager_MakeOneFrame");
 
@@ -259,8 +266,10 @@ void RenderManager::MakeOneFrame(FMainData& InMainData)
 	
 	// Fill the rays on the screen
 	{
-		PROFILE_METRICS_COLLECTOR("FillRaysOnSurface_Async");
-		RayTrace::FillRaysOnSurface_Async(InMainData);
+		//PROFILE_METRICS_COLLECTOR("FillRaysOnSurface_Async_UseThreadPool");
+		RayTrace::FillRaysOnSurface_Async_UseThreadPool(InMainData);
+
+		//RayTrace::FillRaysOnSurface_Async_ParallelFor(InMainData);
 	}
 
 	// Fill the rectangles
