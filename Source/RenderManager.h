@@ -1,11 +1,24 @@
 #pragma once
+
 #include <vector>
+#include "RayTrace.h"
+#include "ThreadPoolManager.h"
+
+#if defined(_WIN32) || defined(_WIN64)
 #include <SDL_video.h>
 #include <SDL_surface.h>
 #include <SDL_rect.h>
-#include "RayTrace.h"
-#include "ThreadPoolManager.h"
-#include "Constants.h"
+#endif
+
+#if defined(__linux__)
+//
+#endif
+
+#if defined(__APPLE__)
+#include <SDL3/SDL_video.h>
+#include <SDL3/SDL_surface.h>
+#include <SDL3/SDL_rect.h>
+#endif
 
 struct FFigureRenderData
 {
@@ -37,53 +50,46 @@ struct FMainData
 	std::vector<FFigureRenderData*> ObjectsToRender;
 };
 
-class FRenderManager
+class RenderManager
 {
 public:
-	static FRenderManager* GetInstance();
+	RenderManager();
+	~RenderManager();
 
 	//
-	void DrawOneCircleOnSurface(SDL_Surface* InSurface, FFigureRenderData& InFigureRD, uint32_t InColor);
+	static void DrawOneCircleOnSurface(SDL_Surface* InSurface, FFigureRenderData& InFigureRD, uint32_t InColor);
 	//
-	void DrawOneCircleOnSurface_Bresenham(SDL_Surface* InSurface, FFigureRenderData& InFigureRD, uint32_t InColor);
+	static void DrawOneCircleOnSurface_Bresenham(SDL_Surface* InSurface, FFigureRenderData& InFigureRD, uint32_t InColor);
 	//
-	void DrawMultiCirclesOnSurface(SDL_Surface* InSurface, const std::vector<FFigureRenderData*>& InObjectsArray, uint32_t InColor);
-
-
-	//
-	void DrawOneRectangeOnSurface(SDL_Surface* InSurface, FFigureRenderData& InFigureRD, uint32_t InColor);
-	//
-	void DrawMultiRectanglesOnSurface(SDL_Surface* InSurface, const std::vector<FFigureRenderData*>& InObjectsArray, uint32_t InColor);
+	static void DrawMultiCirclesOnSurface(SDL_Surface* InSurface, const std::vector<FFigureRenderData*>& InObjectsArray, uint32_t InColor);
 
 
 	//
-	void DrawLineOnSurface(SDL_Surface* InSurface, float2& InStart, float2& InEnd, int InThickness, uint32_t InColor);
+	static void DrawOneRectangeOnSurface(SDL_Surface* InSurface, FFigureRenderData& InFigureRD, uint32_t InColor);
+	//
+	static void DrawMultiRectanglesOnSurface(SDL_Surface* InSurface, const std::vector<FFigureRenderData*>& InObjectsArray, uint32_t InColor);
 
 
 	//
-	void DrawOnePixelOnSurface(SDL_Surface* InSurface, const FRect& InPixelPosition, uint32_t InColor);
-	//
-	void DrawMultiPixelsOnSurface(SDL_Surface* InSurface, const std::vector<FRect>& Pixels, uint32_t InColor);
+	static void DrawLineOnSurface(SDL_Surface* InSurface, float2& InStart, float2& InEnd, int InThickness, uint32_t InColor);
 
 
 	//
-	void DrawOneRayOnSurface_ByPixel(SDL_Surface* InSurface, const std::vector<FFigureRenderData*>& InObjectsArray, const FRay& InRay, uint32_t InColor);
+	static void DrawOnePixelOnSurface(SDL_Surface* InSurface, const FRect& InPixelPosition, uint32_t InColor);
 	//
-	void DrawOneRayOnSurface_ByPixelBuffer(SDL_Surface* InSurface, const std::vector<FFigureRenderData*>& InObjectsArray, const FRay& InRay, uint32_t InColor);
-	//
-	void DrawOneRayOnSurface_ByLine(SDL_Surface* InSurface, const std::vector<FFigureRenderData*>& InObjectsArray, const FRay& InRay, uint32_t InColor);
+	static void DrawMultiPixelsOnSurface(SDL_Surface* InSurface, const std::vector<FRect>& Pixels, uint32_t InColor);
 
 
 	//
-	void MakeOneFrame(FMainData& InRenderData);
+	static void DrawOneRayOnSurface_ByPixel(SDL_Surface* InSurface, const std::vector<FFigureRenderData*>& InObjectsArray, const FRay& InRay, uint32_t InColor);
+	//
+	static void DrawOneRayOnSurface_ByPixelBuffer(SDL_Surface* InSurface, const std::vector<FFigureRenderData*>& InObjectsArray, const FRay& InRay, uint32_t InColor);
+	//
+	static void DrawOneRayOnSurface_ByLine(SDL_Surface* InSurface, const std::vector<FFigureRenderData*>& InObjectsArray, const FRay& InRay, uint32_t InColor);
 
-private:
-	FRenderManager();
-	~FRenderManager();
 
-	FRenderManager(const FRenderManager&) = delete;
-	FRenderManager(const FRenderManager&&) = delete;
-	FRenderManager& operator=(const FRenderManager&) = delete;
-	FRenderManager& operator=(const FRenderManager&&) = delete;
+	//
+	static void MakeOneFrame(FMainData& InRenderData);
+
 };
 

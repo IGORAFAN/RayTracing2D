@@ -1,17 +1,33 @@
-#include "ControllAppManager.h"
-#include <SDL_events.h>
+
 #include "Constants.h"
 #include "RenderManager.h"
+#include "ControllAppManager.h"
 
-IFigure* FControllAppManager::CurrentlyControlledFigure = nullptr;
+#if defined(_WIN32) || defined(_WIN64)
+#include <SDL_events.h>
+#endif
 
-FControllAppManager* FControllAppManager::GetInstance()
+#if defined(__linux__)
+//
+#endif
+
+#if defined(__APPLE__)
+#include <SDL3/SDL_events.h>
+#endif
+
+IFigure* ControllAppManager::CurrentlyControlledFigure = nullptr;
+
+ControllAppManager::ControllAppManager()
 {
-	static FControllAppManager Instance;
-	return &Instance;
+
 }
 
-void FControllAppManager::HandleInput(SDL_Event& InEvent, bool& InbRunTheApp, float2& OutDetectedControll)
+ControllAppManager::~ControllAppManager()
+{
+
+}
+
+void ControllAppManager::HandleInput(SDL_Event& InEvent, bool& InbRunTheApp, float2& OutDetectedControll)
 {
 	while (SDL_PollEvent(&InEvent))
 	{
@@ -32,7 +48,7 @@ void FControllAppManager::HandleInput(SDL_Event& InEvent, bool& InbRunTheApp, fl
 	}
 }
 
-bool FControllAppManager::ApplyControll(float2 InNewDetectedControllPosition, FMainData& InMainData)
+bool ControllAppManager::ApplyControll(float2 InNewDetectedControllPosition, FMainData& InMainData)
 {
 	if ((int)InMainData.LastControllPosition.X != (int)InNewDetectedControllPosition.X ||
 		(int)InMainData.LastControllPosition.Y != (int)InNewDetectedControllPosition.Y)
@@ -68,14 +84,4 @@ bool FControllAppManager::ApplyControll(float2 InNewDetectedControllPosition, FM
 		}
 	}
 	return false;
-}
-
-FControllAppManager::FControllAppManager()
-{
-
-}
-
-FControllAppManager::~FControllAppManager()
-{
-
 }

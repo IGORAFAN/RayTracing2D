@@ -5,7 +5,18 @@
 #include "ThreadPoolManager.h"
 #include "Helper.h"
 #include "ControllAppManager.h"
+
+#if defined(_WIN32) || defined(_WIN64)
 #include <SDL_init.h>
+#endif
+
+#if defined(__linux__)
+//
+#endif
+
+#if defined(__APPLE__)
+#include <SDL3/SDL_init.h>
+#endif
 
 int main(int argc, char* argv[])
 {
@@ -40,34 +51,25 @@ int main(int argc, char* argv[])
 	FThreadPoolManager ThreadPoolManager(THREADS_NUMBERS);
 	MainData.ThreadPoolManager = &ThreadPoolManager;
 
-
 	// Render the first frame
 	float2 DetectedControll = { ControlledCircle.X, ControlledCircle.Y };
 	MainData.GenerateRaysFromPosition = DetectedControll;
-
 	unsigned long long int FrameCounter = 0;
 	++FrameCounter;
-
-	FRenderManager* RenderManager = FRenderManager::GetInstance();
-	if (RenderManager) RenderManager->MakeOneFrame(MainData);
-
-	FControllAppManager* ControllAppManager = FControllAppManager::GetInstance();
+	RenderManager::MakeOneFrame(MainData);
 
 	SDL_Event Event;
 	bool bRunTheApp = true;
 	while (bRunTheApp)
 	{
-		if (ControllAppManager && RenderManager)
+		ControllAppManager::HandleInput(Event, bRunTheApp, DetectedControll);
+		
+		//ControllAppManager::ApplyControll(DetectedControll, MainData);
+		if (ControllAppManager::ApplyControll(DetectedControll, MainData))
 		{
-			ControllAppManager->HandleInput(Event, bRunTheApp, DetectedControll);
+			DebugTrace("Frame: " + std::to_string(++FrameCounter));
 
-			//ControllAppManager->ApplyControll(DetectedControll, MainData);
-			if (ControllAppManager->ApplyControll(DetectedControll, MainData))
-			{
-				DebugTrace("Frame: " + std::to_string(++FrameCounter));
-
-				RenderManager->MakeOneFrame(MainData);
-			}
+			RenderManager::MakeOneFrame(MainData);
 		}
 	}
 
