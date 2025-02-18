@@ -18,6 +18,7 @@
 #include <SDL3/SDL_video.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_rect.h>
+#include <SDL3/SDL_render.h>
 #endif
 
 struct FFigureRenderData
@@ -36,7 +37,10 @@ struct FFigureRenderData
 struct FMainData
 {
 	SDL_Window* Window = nullptr;
+	SDL_Renderer* Renderer = nullptr;
 	SDL_Surface* Surface = nullptr;
+
+	SDL_Texture* RenderTexture = nullptr;
 
 	FThreadPoolManager* ThreadPoolManager = nullptr;
 

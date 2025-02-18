@@ -38,7 +38,7 @@ void RayTrace::FillRaysOnSurface_ByRange(SDL_Surface* InSurface, const std::vect
 	for (uint32_t i = StartFillFromRay; i <= EndFillToRay; ++i)
 	{
 		FRay& Ray = InRayArray[i];
-		RenderManager::DrawOneRayOnSurface_ByLine(InSurface, InObjectsArray, Ray, InColor);
+		RenderManager::DrawOneRayOnSurface_ByPixel(InSurface, InObjectsArray, Ray, InColor);
 	}
 }
 
@@ -54,7 +54,7 @@ void RayTrace::FillRaysOnSurface_Async(FMainData& InMainData)
 			{
 				//DebugTrace("Start from " + std::to_string(StartFillFromRay) + " to " + std::to_string(EndFillToRay));
 				FMainData* Data = static_cast<FMainData*>(InData);
-				RayTrace::FillRaysOnSurface_ByRange(Data->Surface, Data->ObjectsToRender, Data->RaysArray, StartFillFromRay, EndFillToRay, COLOR_YELLOW);
+				RayTrace::FillRaysOnSurface_ByRange(Data->Surface, Data->ObjectsToRender, Data->RaysArray, StartFillFromRay, EndFillToRay, COLOR_WHITE);
 			},
 			&InMainData
 		);

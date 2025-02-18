@@ -14,6 +14,7 @@
 
 #if defined(__APPLE__)
 #include <SDL3/SDL_surface.h>
+#include <SDL3/SDL_render.h>
 #endif
 
 RenderManager::RenderManager()
@@ -180,7 +181,7 @@ void RenderManager::DrawOneRayOnSurface_ByPixel(
 		}
 
 		FRect CurrentPixel = { (int)DrawX, (int)DrawY, RAY_THICKNESS, RAY_THICKNESS };
-		DrawOnePixelOnSurface(InSurface, CurrentPixel, COLOR_YELLOW);
+		DrawOnePixelOnSurface(InSurface, CurrentPixel, InColor);
 	}
 }
 
@@ -260,6 +261,7 @@ void RenderManager::MakeOneFrame(FMainData& InMainData)
 	// Erase the screen
 	{
 		PROFILE_METRICS_COLLECTOR("ClearScreen");
+        SDL_RenderClear(InMainData.Renderer);
 		if (InMainData.EraseRectRD) DrawOneRectangeOnSurface(InMainData.Surface, *InMainData.EraseRectRD, COLOR_BLACK);
 	}
 	
@@ -287,10 +289,38 @@ void RenderManager::MakeOneFrame(FMainData& InMainData)
 		DrawMultiCirclesOnSurface(InMainData.Surface, InMainData.ObjectsToRender, COLOR_WHITE);
 	}
 	
-	// Update the frame
+	// Update the screen
 	{
-		PROFILE_METRICS_COLLECTOR("SDL_UpdateWindowSurface");
-		SDL_UpdateWindowSurface(InMainData.Window);
+    	PROFILE_METRICS_COLLECTOR("SDL_UpdateRenderer");
+
+		{
+			PROFILE_METRICS_COLLECTOR("SDL_DestroyTexture");
+			if (InMainData.RenderTexture) SDL_DestroyTexture(InMainData.RenderTexture);
+		}
+
+		{
+			PROFILE_METRICS_COLLECTOR("SDL_CreateTextureFromSurface");
+			InMainData.RenderTexture = SDL_CreateTextureFromSurface(InMainData.Renderer, InMainData.Surface);
+		}
+
+    	// Очищаем рендер перед рисованием
+    	{
+			PROFILE_METRICS_COLLECTOR("SDL_RenderClear");
+			SDL_RenderClear(InMainData.Renderer);
+		}
+
+    	// Копируем текстуру на экран
+		{
+			PROFILE_METRICS_COLLECTOR("SDL_RenderTexture");
+			SDL_FRect Rect = { 0, 0, WIDTH, HEIGHT };
+    		SDL_RenderTexture(InMainData.Renderer, InMainData.RenderTexture, &Rect, &Rect);
+		}
+    	
+		// Показываем обновлённый кадр
+    	{
+			PROFILE_METRICS_COLLECTOR("SDL_RenderPresent");
+			SDL_RenderPresent(InMainData.Renderer);
+		}
 	}
 	// Hard Vsync
 	//SDL_Delay(16.6);
