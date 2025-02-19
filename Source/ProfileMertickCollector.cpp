@@ -1,5 +1,6 @@
 #include "ProfileMertickCollector.h"
 #include "Helper.h"
+#include "LogManager.h"
 
 ProfileMerticsCollector::ProfileMerticsCollector(const std::string& InName)
 {
@@ -11,16 +12,11 @@ ProfileMerticsCollector::~ProfileMerticsCollector()
 {
 	auto End = std::chrono::high_resolution_clock::now();
 
-	while (Name.length() < 40) Name.append(" ");
-
 	auto DurationInMicroseconds = std::chrono::duration_cast<std::chrono::microseconds>(End - Start);
-	std::string DurationAsStrInMilliseconds = std::to_string(static_cast<float>(DurationInMicroseconds.count() / 1000.f));
-	DurationAsStrInMilliseconds = DurationAsStrInMilliseconds.substr(0, DurationAsStrInMilliseconds.length() - (DurationAsStrInMilliseconds.length() - 6));
-
-	std::string HashLine;
 	auto DurationInMilliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(End - Start);
-	int DutarionAsInt = DurationInMilliseconds.count();
-	for (int i = 0; i < static_cast<int>(DutarionAsInt); ++i) HashLine.append("#");
 
-	DebugTrace(std::string("PMC - " + Name + " | " + DurationAsStrInMilliseconds + "ms " + HashLine));
+	double DurationInMicrosecAsDouble = DurationInMicroseconds.count();
+	double DutarionInMillisecAsDouble = DurationInMilliseconds.count();
+
+	LogManager::LogProfileTrace(Name, DurationInMicrosecAsDouble, DutarionInMillisecAsDouble);
 }

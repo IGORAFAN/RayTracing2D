@@ -1,6 +1,7 @@
 #include "ThreadPoolManager.h"
 #include "Helper.h"
 #include "ProfileMertickCollector.h"
+#include "LogManager.h"
 
 FThreadPoolManager::FThreadPoolManager(int InThreadsNum)
 {
@@ -41,7 +42,7 @@ FThreadPoolManager::FThreadPoolManager(int InThreadsNum)
 					}
 					else
 					{
-						DebugTrace("Task can't be removed from the tasks queue!");
+						LogManager::LogDebugTrace("Task can't be removed from the tasks queue!");
 					}
 				}
 			})

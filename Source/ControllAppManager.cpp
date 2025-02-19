@@ -27,7 +27,7 @@ void FControllAppManager::HandleInput(SDL_Event& InEvent, bool& InbRunTheApp, fl
 		if (InEvent.type == SDL_EVENT_MOUSE_BUTTON_UP)
 		{
 			CurrentlyControlledFigure = nullptr;
-			//DebugTrace("SDL_EVENT_MOUSE_BUTTON_UP completed");
+			//LogDebugTrace("SDL_EVENT_MOUSE_BUTTON_UP completed");
 		}
 	}
 }

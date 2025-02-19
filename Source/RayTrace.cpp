@@ -50,7 +50,7 @@ void RayTrace::FillRaysOnSurface_Async_UseThreadPool(FMainData& InMainData)
 			InMainData.ThreadPoolManager->AddTask(
 				[StartFillFromRay, EndFillToRay](void* InData)
 				{
-					//DebugTrace("Start from " + std::to_string(StartFillFromRay) + " to " + std::to_string(EndFillToRay));
+					//LogDebugTrace("Start from " + std::to_string(StartFillFromRay) + " to " + std::to_string(EndFillToRay));
 					FMainData* Data = static_cast<FMainData*>(InData);
 					RayTrace::FillRaysOnSurface_ByRange(Data->Surface, Data->ObjectsToRender, Data->RaysArray, StartFillFromRay, EndFillToRay, COLOR_YELLOW);
 				},

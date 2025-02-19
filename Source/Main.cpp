@@ -6,6 +6,7 @@
 #include "Helper.h"
 #include "ControllAppManager.h"
 #include <SDL_init.h>
+#include "LogManager.h"
 
 int main(int argc, char* argv[])
 {
@@ -64,7 +65,7 @@ int main(int argc, char* argv[])
 			//ControllAppManager->ApplyControll(DetectedControll, MainData);
 			if (ControllAppManager->ApplyControll(DetectedControll, MainData))
 			{
-				DebugTrace("Frame: " + std::to_string(++FrameCounter));
+				LogManager::LogDebugTrace("\nFrame: " + std::to_string(++FrameCounter));
 
 				RenderManager->MakeOneFrame(MainData);
 			}
