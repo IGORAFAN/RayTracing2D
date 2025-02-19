@@ -1,0 +1,11 @@
+
+{
+    "configurations": [
+        {
+            "name": "Mac-Debug",
+            "generator": "Ninja",
+            "buildRoot": "${workspaceFolder}/build",
+            "cmakeCommandArgs": "-DCMAKE_BUILD_TYPE=Debug"
+        }
+    ]
+}

@@ -1,11 +1,26 @@
 #pragma once
+
 #include <vector>
+#include "RayTrace.h"
+#include "ThreadPoolManager.h"
+
+#if defined(_WIN32) || defined(_WIN64)
 #include <SDL_video.h>
 #include <SDL_surface.h>
 #include <SDL_rect.h>
-#include "RayTrace.h"
-#include "ThreadPoolManager.h"
-#include "Constants.h"
+#include <SDL_render.h>
+#endif
+
+#if defined(__linux__)
+//
+#endif
+
+#if defined(__APPLE__)
+#include <SDL3/SDL_video.h>
+#include <SDL3/SDL_surface.h>
+#include <SDL3/SDL_rect.h>
+#include <SDL3/SDL_render.h>
+#endif
 
 struct FFigureRenderData
 {
@@ -23,7 +38,10 @@ struct FFigureRenderData
 struct FMainData
 {
 	SDL_Window* Window = nullptr;
+	SDL_Renderer* Renderer = nullptr;
 	SDL_Surface* Surface = nullptr;
+
+	SDL_Texture* RenderTexture = nullptr;
 
 	FThreadPoolManager* ThreadPoolManager = nullptr;
 

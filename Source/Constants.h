@@ -1,6 +1,19 @@
 #pragma once
+
+#if defined(_WIN32) || defined(_WIN64)
 #include "../SDL3-devel-3.2.0-VC/SDL3-3.2.0/include/SDL3/SDL_rect.h"
 #include <corecrt_math.h>
+#endif
+
+#if defined(__linux__)
+//
+#endif
+
+#if defined(__APPLE__) && defined(__MACH__)
+#include <SDL3/SDL_rect.h>
+#include <math.h>
+#endif
+
 
 #define DEBUG_MODE true
 

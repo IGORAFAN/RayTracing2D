@@ -1,7 +1,19 @@
-#include "ControllAppManager.h"
-#include <SDL_events.h>
+
 #include "Constants.h"
 #include "RenderManager.h"
+#include "ControllAppManager.h"
+
+#if defined(_WIN32) || defined(_WIN64)
+#include <SDL_events.h>
+#endif
+
+#if defined(__linux__)
+//
+#endif
+
+#if defined(__APPLE__)
+#include <SDL3/SDL_events.h>
+#endif
 
 IFigure* FControllAppManager::CurrentlyControlledFigure = nullptr;
 
@@ -27,7 +39,7 @@ void FControllAppManager::HandleInput(SDL_Event& InEvent, bool& InbRunTheApp, fl
 		if (InEvent.type == SDL_EVENT_MOUSE_BUTTON_UP)
 		{
 			CurrentlyControlledFigure = nullptr;
-			//LogDebugTrace("SDL_EVENT_MOUSE_BUTTON_UP completed");
+			//DebugTrace("SDL_EVENT_MOUSE_BUTTON_UP completed");
 		}
 	}
 }

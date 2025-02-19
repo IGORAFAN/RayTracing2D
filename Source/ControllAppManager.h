@@ -18,7 +18,7 @@ private:
 	FControllAppManager();
 	FControllAppManager(const FControllAppManager&) = delete;
 	FControllAppManager(const FControllAppManager&&) = delete;
-	
+
 	~FControllAppManager();
 
 	FControllAppManager& operator=(const FControllAppManager&) = delete;
@@ -27,4 +27,3 @@ private:
 protected:
 	static IFigure* CurrentlyControlledFigure;
 };
-

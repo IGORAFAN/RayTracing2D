@@ -1,20 +1,14 @@
 #pragma once
 #include <chrono>
 #include <string>
-#include "Constants.h"
+#include "Helper.h"
 
 class ProfileMerticsCollector
 {
 public:
+	ProfileMerticsCollector() = delete;
 	ProfileMerticsCollector(const std::string& InName);
 	~ProfileMerticsCollector();
-
-private:
-	ProfileMerticsCollector() = delete;
-	ProfileMerticsCollector(const ProfileMerticsCollector&) = delete;
-	ProfileMerticsCollector(const ProfileMerticsCollector&&) = delete;
-	ProfileMerticsCollector& operator=(const ProfileMerticsCollector&) = delete;
-	ProfileMerticsCollector& operator=(const ProfileMerticsCollector&&) = delete;
 
 protected:
 	std::string Name;

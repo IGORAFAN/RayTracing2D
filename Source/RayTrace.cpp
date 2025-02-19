@@ -1,13 +1,25 @@
 
 #include "RayTrace.h"
-#include <SDL_surface.h>
 #include "ProfileMertickCollector.h"
 #include "RenderManager.h"
-#include "tbb/blocked_range.h"
-#include "tbb/parallel_for.h"
+
+#if defined(_WIN32) || defined(_WIN64)
 #include <corecrt_math_defines.h>
-#include "ProfileMertickCollector.h"
-#include "Constants.h"
+#include <SDL_rect.h>
+#include <SDL_surface.h>
+#include <tbb/parallel_for.h>
+#endif
+
+#if defined(__linux__)
+//
+#endif
+
+#if defined(__APPLE__)
+#include <SDL3/SDL_rect.h>
+#include <SDL3/SDL_surface.h>
+#include <tbb/parallel_for.h>
+//#include <corecrt_math_defines.h>
+#endif
 
 
 void RayTrace::GenerateRays(float2& InGenerateRaysFrom, FRay* InRayArray)
@@ -29,14 +41,14 @@ void RayTrace::FillRaysOnSurface_ByRange(SDL_Surface* InSurface, const std::vect
 	for (uint32_t i = StartFillFromRay; i <= EndFillToRay; ++i)
 	{
 		FRay& Ray = InRayArray[i];
-		if (FRenderManager* RenderManager = FRenderManager::GetInstance())
+		if (FRenderManager* FRenderManager = FRenderManager::GetInstance())
 		{
-			RenderManager->DrawOneRayOnSurface_ByPixel(InSurface, InObjectsArray, Ray, InColor);
+			FRenderManager->DrawOneRayOnSurface_ByPixel(InSurface, InObjectsArray, Ray, InColor);
 		}
 	}
 }
 
-void RayTrace::FillRaysOnSurface_Async_UseThreadPool(FMainData& InMainData)
+void RayTrace::FillRaysOnSurface_Async(FMainData& InMainData)
 {
 	{
 		PROFILE_METRICS_COLLECTOR("FillRaysOnSurface_Async_UseThreadPool");
@@ -79,9 +91,9 @@ void RayTrace::FillRaysOnSurface_Async_ParallelFor(FMainData& InMainData)
 
 			for (auto i = InRange.begin(); i < InRange.end(); ++i)
 			{
-				if (FRenderManager* RenderManager = FRenderManager::GetInstance())
+				if (FRenderManager* FRenderManager = FRenderManager::GetInstance())
 				{
-					RenderManager->DrawOneRayOnSurface_ByPixel(InMainData.Surface, InMainData.ObjectsToRender, InMainData.RaysArray[i], COLOR_YELLOW);
+					FRenderManager->DrawOneRayOnSurface_ByPixel(InMainData.Surface, InMainData.ObjectsToRender, InMainData.RaysArray[i], COLOR_YELLOW);
 				}
 			}
 		});

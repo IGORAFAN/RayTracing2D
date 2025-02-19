@@ -1,9 +1,21 @@
-﻿#include "RenderManager.h"
+﻿
+#include "RenderManager.h"
 #include "ThreadPoolManager.h"
 #include "ProfileMertickCollector.h"
 #include <vector>
+
+#if defined(_WIN32) || defined(_WIN64)
 #include <SDL_surface.h>
-#include <corecrt_math.h>
+#endif
+
+#if defined(__linux__)
+//
+#endif
+
+#if defined(__APPLE__)
+#include <SDL3/SDL_surface.h>
+#include <SDL3/SDL_render.h>
+#endif
 
 FRenderManager::FRenderManager()
 {
@@ -25,30 +37,30 @@ void FRenderManager::DrawOneCircleOnSurface(SDL_Surface* InSurface, FFigureRende
 {
 	//if (InFigureRD.bShouldUpdateOnScreenAtTheNextFrame)
 	//{
-		if (FCircle* Circle = static_cast<FCircle*>(InFigureRD.Figure))
-		{
-			int startX	= static_cast<int>(Circle->X) - static_cast<int>(Circle->R);
-			int finishX	= static_cast<int>(Circle->X) + static_cast<int>(Circle->R);
-			int startY	= static_cast<int>(Circle->Y) - static_cast<int>(Circle->R);
-			int finishY = static_cast<int>(Circle->Y) + static_cast<int>(Circle->R);
+	if (FCircle* Circle = static_cast<FCircle*>(InFigureRD.Figure))
+	{
+		int startX = static_cast<int>(Circle->X) - static_cast<int>(Circle->R);
+		int finishX = static_cast<int>(Circle->X) + static_cast<int>(Circle->R);
+		int startY = static_cast<int>(Circle->Y) - static_cast<int>(Circle->R);
+		int finishY = static_cast<int>(Circle->Y) + static_cast<int>(Circle->R);
 
-			for (int X = startX; X <= finishX; ++X)
+		for (int X = startX; X <= finishX; ++X)
+		{
+			for (int Y = startY; Y <= finishY; ++Y)
 			{
-				for (int Y = startY; Y <= finishY; ++Y)
+				float2 CurrentPosition = { static_cast<float>(X), static_cast<float>(Y) };
+				if (Circle->IsIn(CurrentPosition))
 				{
-					float2 CurrentPosition = { static_cast<float>(X), static_cast<float>(Y) };
-					if (Circle->IsIn(CurrentPosition))
-					{
-						FRect CurrentPixel = { X, Y, 1, 1 };
-						FRenderManager::DrawOnePixelOnSurface(InSurface, CurrentPixel, InColor);
-						//if (InFigureRD.bAlwaysShouldUpdateOnScreen == false)
-						//{
-						//	InFigureRD.bShouldUpdateOnScreenAtTheNextFrame = false;
-						//}
-					}
+					FRect CurrentPixel = { X, Y, 1, 1 };
+					FRenderManager::DrawOnePixelOnSurface(InSurface, CurrentPixel, InColor);
+					//if (InFigureRD.bAlwaysShouldUpdateOnScreen == false)
+					//{
+					//	InFigureRD.bShouldUpdateOnScreenAtTheNextFrame = false;
+					//}
 				}
 			}
 		}
+	}
 	//}
 }
 
@@ -56,10 +68,10 @@ void FRenderManager::DrawOneCircleOnSurface_Bresenham(SDL_Surface* InSurface, FF
 {
 	if (FCircle* Circle = static_cast<FCircle*>(InFigureRD.Figure))
 	{
-		int cx	= static_cast<int>(Circle->X);
-		int cy	= static_cast<int>(Circle->Y);
-		int r	= static_cast<int>(Circle->R);
-		int r2	= r * r;
+		int cx = static_cast<int>(Circle->X);
+		int cy = static_cast<int>(Circle->Y);
+		int r = static_cast<int>(Circle->R);
+		int r2 = r * r;
 
 		for (int y = -r; y <= r; ++y)
 		{
@@ -89,16 +101,16 @@ void FRenderManager::DrawOneRectangeOnSurface(SDL_Surface* InSurface, FFigureRen
 
 	//if (InFigureRD.bShouldUpdateOnScreenAtTheNextFrame)
 	//{
-		if (FRect* Rect = static_cast<FRect*>(InFigureRD.Figure))
-		{
-			SDL_FillSurfaceRect(InSurface, &Rect->Rect, InColor);
-			//if (InFigureRD.bAlwaysShouldUpdateOnScreen == false)
-			//{
-			//	InFigureRD.bShouldUpdateOnScreenAtTheNextFrame = false;
-			//}
-		}
+	if (FRect* Rect = static_cast<FRect*>(InFigureRD.Figure))
+	{
+		SDL_FillSurfaceRect(InSurface, &Rect->Rect, InColor);
+		//if (InFigureRD.bAlwaysShouldUpdateOnScreen == false)
+		//{
+		//	InFigureRD.bShouldUpdateOnScreenAtTheNextFrame = false;
+		//}
+	}
 	//}
-} 
+}
 
 void FRenderManager::DrawMultiRectanglesOnSurface(SDL_Surface* InSurface, const std::vector<FFigureRenderData*>& InObjectsArray, uint32_t InColor)
 {
@@ -255,6 +267,7 @@ void FRenderManager::MakeOneFrame(FMainData& InMainData)
 	// Erase the screen
 	{
 		PROFILE_METRICS_COLLECTOR("ClearScreen");
+		SDL_RenderClear(InMainData.Renderer);
 		if (InMainData.EraseRectRD) DrawOneRectangeOnSurface(InMainData.Surface, *InMainData.EraseRectRD, COLOR_BLACK);
 	}
 	
@@ -266,10 +279,8 @@ void FRenderManager::MakeOneFrame(FMainData& InMainData)
 	
 	// Fill the rays on the screen
 	{
-		//PROFILE_METRICS_COLLECTOR("FillRaysOnSurface_Async_UseThreadPool");
-		RayTrace::FillRaysOnSurface_Async_UseThreadPool(InMainData);
-
-		//RayTrace::FillRaysOnSurface_Async_ParallelFor(InMainData);
+		PROFILE_METRICS_COLLECTOR("FillRaysOnSurface_Async");
+		RayTrace::FillRaysOnSurface_Async(InMainData);
 	}
 
 	// Fill the rectangles
@@ -284,10 +295,35 @@ void FRenderManager::MakeOneFrame(FMainData& InMainData)
 		DrawMultiCirclesOnSurface(InMainData.Surface, InMainData.ObjectsToRender, COLOR_WHITE);
 	}
 	
-	// Update the frame
+	// Update the screen
 	{
-		PROFILE_METRICS_COLLECTOR("SDL_UpdateWindowSurface");
-		SDL_UpdateWindowSurface(InMainData.Window);
+		PROFILE_METRICS_COLLECTOR("SDL_UpdateRenderer");
+
+		{
+			PROFILE_METRICS_COLLECTOR("SDL_DestroyTexture");
+			if (InMainData.RenderTexture) SDL_DestroyTexture(InMainData.RenderTexture);
+		}
+
+		{
+			PROFILE_METRICS_COLLECTOR("SDL_CreateTextureFromSurface");
+			InMainData.RenderTexture = SDL_CreateTextureFromSurface(InMainData.Renderer, InMainData.Surface);
+		}
+
+		{
+			PROFILE_METRICS_COLLECTOR("SDL_RenderClear");
+			SDL_RenderClear(InMainData.Renderer);
+		}
+
+		{
+			PROFILE_METRICS_COLLECTOR("SDL_RenderTexture");
+			SDL_FRect Rect = { 0, 0, WIDTH, HEIGHT };
+			SDL_RenderTexture(InMainData.Renderer, InMainData.RenderTexture, &Rect, &Rect);
+		}
+		
+		{
+			PROFILE_METRICS_COLLECTOR("SDL_RenderPresent");
+			SDL_RenderPresent(InMainData.Renderer);
+		}
 	}
 	// Hard Vsync
 	//SDL_Delay(16.6);
